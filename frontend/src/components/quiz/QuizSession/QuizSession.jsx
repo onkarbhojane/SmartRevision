@@ -115,7 +115,7 @@ export const QuizSession = ({ quiz, documentId, onComplete, documentTitle }) => 
     try {
       const token = localStorage.getItem('accessToken');
       await axios.post(
-        `http://localhost:5000/api/quizzes/save/${documentId}`,
+        `https://smartrevision.onrender.com/api/quizzes/save/${documentId}`,
         quizData,
         { 
           headers: { 

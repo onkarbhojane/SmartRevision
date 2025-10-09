@@ -35,7 +35,7 @@ export const StudySession = () => {
         
         // Fetch document
         const res = await fetch(
-          `http://localhost:5000/api/study/documents/${documentId}`,
+          `https://smartrevision.onrender.com/api/study/documents/${documentId}`,
           {
             method: "GET",
             headers: {
@@ -57,7 +57,7 @@ export const StudySession = () => {
           // Fetch recent quizzes for this document
           try {
             const quizRes = await fetch(
-              `http://localhost:5000/api/quizzes/allquiz/${documentId}`,
+              `https://smartrevision.onrender.com/api/quizzes/allquiz/${documentId}`,
               {
                 method: "GET",
                 headers: {
@@ -107,7 +107,7 @@ export const StudySession = () => {
     // Record text selection in backend
     try {
       const token = localStorage.getItem("accessToken");
-      await fetch(`http://localhost:5000/api/pdf/text-selection`, {
+      await fetch(`https://smartrevision.onrender.com/api/pdf/text-selection`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

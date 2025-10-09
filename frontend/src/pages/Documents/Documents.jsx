@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 // Mock service for document operations
 const documentService = {
   async uploadDocument(formData, token) {
-    const response = await fetch('http://localhost:5000/api/documents/upload', {
+    const response = await fetch('https://smartrevision.onrender.com/api/documents/upload', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -18,7 +18,7 @@ const documentService = {
   },
 
   async getUserDocuments(token) {
-    const response = await fetch('http://localhost:5000/api/documents/getData', {
+    const response = await fetch('https://smartrevision.onrender.com/api/documents/getData', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -29,7 +29,7 @@ const documentService = {
   },
 
   async deleteDocument(documentId, token) {
-    const response = await fetch(`http://localhost:5000/api/documents/${documentId}`, {
+    const response = await fetch(`https://smartrevision.onrender.com/api/documents/${documentId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -30,7 +30,7 @@ export const QuizAttempt = () => {
         
         // Fetch document info
         const docResponse = await axios.get(
-          `http://localhost:5000/api/study/documents/${documentId}`,
+          `https://smartrevision.onrender.com/api/study/documents/${documentId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setDocumentInfo(docResponse.data.document);
@@ -40,7 +40,7 @@ export const QuizAttempt = () => {
         if (attemptId) {
           console.log('Fetching existing quiz attempt...', attemptId);
           const response = await axios.get(
-            `http://localhost:5000/api/quizzes/allquiz/${documentId}`,
+            `https://smartrevision.onrender.com/api/quizzes/allquiz/${documentId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           
@@ -76,7 +76,7 @@ export const QuizAttempt = () => {
         if (!quizData) {
           console.log('Generating new quiz...');
           const response = await axios.post(
-            `http://localhost:5000/api/quizzes/generate/${documentId}`,
+            `https://smartrevision.onrender.com/api/quizzes/generate/${documentId}`,
             {
               quizType: 'mcq',
               numQuestions: 10
@@ -297,7 +297,7 @@ export const QuizAttempt = () => {
     try {
       const token = localStorage.getItem('accessToken');
       await axios.post(
-        `http://localhost:5000/api/quizzes/save/${documentId}/${attemptId}`,
+        `https://smartrevision.onrender.com/api/quizzes/save/${documentId}/${attemptId}`,
         quizData,
         { 
           headers: { 

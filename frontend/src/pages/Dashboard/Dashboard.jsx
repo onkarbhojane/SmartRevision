@@ -20,7 +20,7 @@ export const Dashboard = () => {
         console.log("Fetching dashboard data for user:", user);
         
         const response = await fetch(
-          `http://localhost:5000/api/quizzes/dashboard`,
+          `https://smartrevision.onrender.com/api/quizzes/dashboard`,
           {
             method: "GET",
             headers: {
