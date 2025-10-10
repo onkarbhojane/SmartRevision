@@ -978,8 +978,3 @@ If you encounter issues not listed here:
 This project is licensed under the **ISC License**.  
 See the [LICENSE](LICENSE) file for more details.
 
-=======
-| Feature    | Metric | Performance |
-| ---------- | ------ | ----------- |
-| PDF Upload |        |             |
->>>>>>> 2d95e9c (readme)
