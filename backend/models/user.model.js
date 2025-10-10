@@ -69,7 +69,6 @@ const quizSchema = new Schema({
   attemptedAt: { type: Date, default: Date.now },
 });
 
-
 /* ---------------------- Chat Schema ---------------------- */
 const chatSchema = new Schema({
   messages: [
@@ -114,6 +113,13 @@ const pdfMaterialSchema = new Schema({
   RAG_id: {
     type: String,
   },
+  // ✅ New field: store page texts
+  pages: [
+    {
+      pageNumber: Number,
+      text: String,
+    },
+  ],
 });
 
 /* ---------------------- User Schema ---------------------- */
