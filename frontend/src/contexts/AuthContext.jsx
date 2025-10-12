@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 
 // Axios instance
 const authAPI = axios.create({
-  baseURL: 'https://smartrevision.onrender.com/api',
+  baseURL: 'http://localhost:5000/api',
   headers: { 'Content-Type': 'application/json' },
 });
 

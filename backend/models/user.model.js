@@ -154,8 +154,12 @@ const userSchema = new Schema(
         type: Number,
         default: 0,
       },
-      strengths: [String],
-      weaknesses: [String],
+      strengths: [
+        {
+          type: String
+        }
+      ],
+      weaknesses: [{ type: String }],
     },
   },
   { timestamps: true }

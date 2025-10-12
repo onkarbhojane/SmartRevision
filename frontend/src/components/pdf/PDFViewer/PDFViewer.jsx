@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './CleanPDFViewer.css';
 
 const PDFViewer = forwardRef((props, ref) => {
@@ -10,6 +11,7 @@ const PDFViewer = forwardRef((props, ref) => {
   const [selectedText, setSelectedText] = useState('');
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
+  const navigate = useNavigate();
 
   const pdfUrl = props.pdfUrl;
 
@@ -251,6 +253,11 @@ const PDFViewer = forwardRef((props, ref) => {
     }
   };
 
+  // Navigate to documents page
+  const goToDocuments = () => {
+    navigate('/documents');
+  };
+
   // Add a resize handler to re-render on window resize
   useEffect(() => {
     const handleResize = () => {
@@ -267,6 +274,9 @@ const PDFViewer = forwardRef((props, ref) => {
     return (
       <div className="error-container">
         <p>No PDF URL provided</p>
+        <button onClick={goToDocuments} className="documents-button">
+          📚 Back to Documents
+        </button>
       </div>
     );
   }
@@ -276,6 +286,9 @@ const PDFViewer = forwardRef((props, ref) => {
       <div className="loading-container">
         <div className="loading-spinner"></div>
         <p>Loading PDF document...</p>
+        <button onClick={goToDocuments} className="documents-button">
+          📚 Back to Documents
+        </button>
       </div>
     );
   }
@@ -294,6 +307,9 @@ const PDFViewer = forwardRef((props, ref) => {
           <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="direct-link">
             Open PDF directly
           </a>
+          <button onClick={goToDocuments} className="documents-button">
+            📚 Back to Documents
+          </button>
         </div>
       </div>
     );
@@ -302,26 +318,23 @@ const PDFViewer = forwardRef((props, ref) => {
   return (
     <div className="clean-pdf-container" ref={containerRef}>
       <div className="pdf-controls">
-        <button onClick={prevPage} disabled={currentPage <= 1} className="page-button">
-          ‹ Previous
-        </button>
-        <span className="page-info">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button onClick={nextPage} disabled={currentPage >= totalPages} className="page-button">
-          Next ›
-        </button>
-        <button onClick={downloadPDF} className="download-button">
-          Download
-        </button>
+        <div className="controls-left">
+          <button onClick={goToDocuments} className="documents-button">
+            📚 Watch Videos
+          </button>
+        </div>
         
-        {selectedText && (
-          <div className="selection-controls">
-            <button onClick={copySelectedText} className="copy-button">
-              Copy Text
-            </button>
-          </div>
-        )}
+        <div className="controls-center">
+          <button onClick={prevPage} disabled={currentPage <= 1} className="page-button">
+            ‹ Previous
+          </button>
+          <span className="page-info">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button onClick={nextPage} disabled={currentPage >= totalPages} className="page-button">
+            Next ›
+          </button>
+        </div>
       </div>
       
       {selectedText && (

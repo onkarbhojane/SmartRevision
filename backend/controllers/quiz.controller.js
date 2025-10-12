@@ -65,19 +65,23 @@ export const getDashboardData = async (req, res) => {
   try {
     const userId = req.user.id;
     console.log("User ID:", userId);
+
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Calculate total quizzes attempted
+    // Initialize stats
     let totalQuizzesAttempted = 0;
     let totalScore = 0;
-    let totalStudyMaterials = user.study_materials.length;
+    const totalStudyMaterials = user.study_materials.length;
     let totalChatSessions = 0;
     const recentActivities = [];
 
+    // 🧩 Extract strengths & weaknesses from progress
+    const strengths = user.progress?.strengths || [];
+    const weaknesses = user.progress?.weaknesses || [];
+
     // Process each study material
     user.study_materials.forEach((material) => {
-      // Count chat sessions
       totalChatSessions += material.chat_sessions?.length || 0;
 
       // Process quizzes
@@ -86,7 +90,7 @@ export const getDashboardData = async (req, res) => {
           totalQuizzesAttempted++;
           totalScore += quiz.score || 0;
 
-          // Add to recent activities
+          // Add to activity log
           recentActivities.push({
             id: quiz._id,
             type: "quiz",
@@ -98,7 +102,7 @@ export const getDashboardData = async (req, res) => {
         }
       });
 
-      // Add document upload as activity
+      // Document upload activity
       recentActivities.push({
         id: material._id,
         type: "document",
@@ -106,7 +110,7 @@ export const getDashboardData = async (req, res) => {
         time: material.uploadedAt,
       });
 
-      // Add chat sessions as activities
+      // Chat session activities
       material.chat_sessions?.forEach((session) => {
         recentActivities.push({
           id: session._id,
@@ -123,13 +127,14 @@ export const getDashboardData = async (req, res) => {
         ? Math.round(totalScore / totalQuizzesAttempted)
         : 0;
 
-    // Sort recent activities by time (newest first) and limit to 6
+    // Sort recent activities (latest first)
     const sortedActivities = recentActivities
       .sort((a, b) => new Date(b.time) - new Date(a.time))
       .slice(0, 6);
 
+    // ✅ Send response with strengths & weaknesses
     res.status(200).json({
-      message: "Dashboard data fetched successfully",
+      message: "✅ Dashboard data fetched successfully",
       data: {
         user: {
           name: user.name,
@@ -140,8 +145,8 @@ export const getDashboardData = async (req, res) => {
           averageScore,
           totalStudyMaterials,
           totalChatSessions,
-          strengths: user.progress?.strengths || [],
-          weaknesses: user.progress?.weaknesses || [],
+          strengths,
+          weaknesses,
         },
         study_materials: user.study_materials,
         recentActivities: sortedActivities,
@@ -246,6 +251,7 @@ export const saveQuizAttempt = async (req, res) => {
     const { documentId, quizId } = req.params;
     const { answers, score } = req.body;
     const userId = req.user.id;
+
     if (!answers || (typeof score !== "number" && answers.length === 0)) {
       return res.status(400).json({ message: "Invalid answers or score" });
     }
@@ -258,6 +264,9 @@ export const saveQuizAttempt = async (req, res) => {
 
     const quiz = pdf.quizzes.id(quizId);
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+
+    let strengthsArr = [];
+    let weaknessesArr = [];
 
     if (quiz.quizType === "saq" || quiz.quizType === "laq") {
       console.log(
@@ -281,7 +290,9 @@ Respond ONLY in JSON:
 {
   "isCorrect": true or false,
   "similarity": a number from 0 to 100,
-  "feedback": "short feedback to student"
+  "feedback": "short feedback to student",
+  "weaknesses": ["weakness 1", "weakness 2", "weakness 3"],
+  "strengths": ["strength 1", "strength 2", "strength 3"]
 }
         `;
 
@@ -299,6 +310,11 @@ Respond ONLY in JSON:
             answers[i].isCorrect = aiResponse.isCorrect;
             answers[i].feedback = aiResponse.feedback;
             answers[i].similarity = aiResponse.similarity;
+
+            if (Array.isArray(aiResponse.strengths))
+              strengthsArr.push(...aiResponse.strengths);
+            if (Array.isArray(aiResponse.weaknesses))
+              weaknessesArr.push(...aiResponse.weaknesses);
           } else {
             answers[i].isCorrect = false;
             answers[i].feedback = "Could not evaluate with AI.";
@@ -321,6 +337,12 @@ Respond ONLY in JSON:
     } else {
       // For MCQ, use provided score
       quiz.score = score;
+
+      // Generate strengths/weaknesses based on correct/incorrect answers
+      answers.forEach((a) => {
+        if (a.isCorrect) strengthsArr.push(a.question);
+        else weaknessesArr.push(a.question);
+      });
     }
 
     // ✅ Update quiz answers and metadata
@@ -334,13 +356,21 @@ Respond ONLY in JSON:
     // ✅ Update user progress
     const totalPrevQuizzes = user.progress.totalQuizzes || 0;
     const prevAvg = user.progress.averageScore || 0;
-
     const newTotal = totalPrevQuizzes + 1;
     const newAvg = (prevAvg * totalPrevQuizzes + quiz.score) / newTotal;
 
     user.progress.totalQuizzes = newTotal;
     user.progress.averageScore = parseFloat(newAvg.toFixed(2));
-    console.log("quiz saved ")
+
+    // ✅ Push unique strengths and weaknesses
+    user.progress.strengths = Array.from(
+      new Set([...(user.progress.strengths || []), ...strengthsArr])
+    );
+    user.progress.weaknesses = Array.from(
+      new Set([...(user.progress.weaknesses || []), ...weaknessesArr])
+    );
+
+    console.log("✅ Quiz saved and progress updated with strengths/weaknesses");
     await user.save();
 
     return res.status(200).json({

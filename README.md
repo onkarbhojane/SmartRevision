@@ -190,7 +190,7 @@ npm run dev
 npm start
 ```
 
-✅ Backend server should be running on `https://smartrevision.onrender.com`
+✅ Backend server should be running on `http://localhost:5000`
 
 **Step 5: Frontend Setup** *(Open a new terminal)*
 
@@ -204,7 +204,7 @@ npm install
 Create `.env` in the `frontend` directory if you need custom configuration:
 
 ```env
-VITE_API_BASE_URL=https://smartrevision.onrender.com/api
+VITE_API_BASE_URL=http://localhost:5000/api
 VITE_APP_NAME=SmartRevision
 ```
 
@@ -488,7 +488,7 @@ SmartRevision/
 ### Base URL
 
 ```
-https://smartrevision.onrender.com/api
+http://localhost:5000/api
 ```
 
 ### Authentication Endpoints

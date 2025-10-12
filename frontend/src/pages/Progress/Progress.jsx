@@ -1,9 +1,9 @@
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProgressChart } from './ProgressChart';
 import { ReviewModal } from './ReviewModal';
 import { useAuth } from '../../contexts/AuthContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Sample data fallback
 const sampleStats = {
@@ -34,7 +34,7 @@ export const Progress = () => {
         setLoading(true);
         const token = localStorage.getItem("accessToken");
         
-        const response = await fetch('https://smartrevision.onrender.com/api/quizzes/dashboard', {
+        const response = await fetch('http://localhost:5000/api/quizzes/dashboard', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -192,21 +192,7 @@ export const Progress = () => {
     navigate(`/documents`);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-lg font-semibold text-gray-700 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Loading Your Progress...
-          </div>
-          <p className="text-gray-500 mt-2">Getting everything ready for you</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Color gradients for different score ranges
+  // Color utilities
   const getScoreGradient = (score) => {
     if (score >= 90) return 'from-emerald-500 to-green-500';
     if (score >= 80) return 'from-blue-500 to-cyan-500';
@@ -231,8 +217,26 @@ export const Progress = () => {
     return 'bg-rose-100';
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-lg font-semibold text-gray-700 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            Loading Your Progress...
+          </div>
+          <p className="text-gray-500 mt-2">Getting everything ready for you</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 p-4">
+    <div className="space-y-8 p-4 max-w-7xl mx-auto">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -240,10 +244,10 @@ export const Progress = () => {
         transition={{ duration: 0.6 }}
         className="text-center"
       >
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
+        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
           Learning Progress
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
           Track your performance, celebrate your growth, and discover opportunities to excel
         </p>
       </motion.div>
@@ -263,10 +267,10 @@ export const Progress = () => {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className="relative group"
           >
-            <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl blur-lg" />
-            <div className="relative bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-1">
+            <div className={`absolute inset-0 bg-gradient-to-r ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl blur-lg`} />
+            <div className="relative bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-1 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.gradient} flex items-center justify-center text-white text-xl`}>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.gradient} flex items-center justify-center text-white text-xl shadow-lg`}>
                   {stat.icon}
                 </div>
               </div>
@@ -300,6 +304,7 @@ export const Progress = () => {
               averageScore={stats.averageScore}
               weakAreasCount={stats.weakAreas.length}
               studyHours={stats.studyHours}
+              monthlyProgress={monthlyProgress}
             />
           </div>
 
@@ -317,10 +322,10 @@ export const Progress = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 + index * 0.1 }}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:shadow-md transition-all duration-300"
+                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-600"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 rounded-xl ${getScoreBgColor(month.averageScore)} flex items-center justify-center font-bold ${getScoreColor(month.averageScore)}`}>
+                      <div className={`w-12 h-12 rounded-xl ${getScoreBgColor(month.averageScore)} flex items-center justify-center font-bold ${getScoreColor(month.averageScore)} shadow-sm`}>
                         {month.averageScore}%
                       </div>
                       <div>
@@ -347,11 +352,15 @@ export const Progress = () => {
                   </motion.div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-8 text-gray-500 dark:text-gray-400"
+                >
                   <div className="text-4xl mb-2">📊</div>
                   <p className="font-medium">No monthly data available</p>
                   <p className="text-sm mt-1">Complete quizzes to see your monthly progress</p>
-                </div>
+                </motion.div>
               )}
             </div>
           </div>
@@ -367,7 +376,7 @@ export const Progress = () => {
             className="bg-gradient-to-br from-white to-red-50 dark:from-gray-800 dark:to-red-900/10 rounded-2xl border border-red-200 dark:border-red-800 p-6 shadow-lg"
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center shadow-sm">
                 <span className="text-red-600 dark:text-red-400 text-lg">⚠️</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Areas Needing Improvement</h3>
@@ -385,18 +394,22 @@ export const Progress = () => {
                     <span className="font-medium text-gray-700 dark:text-gray-300">{area}</span>
                     <button 
                       onClick={() => handlePractice(area)}
-                      className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors duration-200 transform hover:scale-105"
+                      className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors duration-200 transform hover:scale-105 shadow-sm"
                     >
                       Practice
                     </button>
                   </motion.div>
                 ))
               ) : (
-                <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-6 text-gray-500 dark:text-gray-400"
+                >
                   <div className="text-4xl mb-2">🎉</div>
                   <p className="font-medium">No weak areas identified!</p>
                   <p className="text-sm mt-1">Keep up the great work!</p>
-                </div>
+                </motion.div>
               )}
             </div>
           </motion.div>
@@ -409,7 +422,7 @@ export const Progress = () => {
             className="bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-green-900/10 rounded-2xl border border-green-200 dark:border-green-800 p-6 shadow-lg"
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center shadow-sm">
                 <span className="text-green-600 dark:text-green-400 text-lg">⭐</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Strong Areas</h3>
@@ -432,10 +445,14 @@ export const Progress = () => {
                   </motion.div>
                 ))
               ) : (
-                <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-6 text-gray-500 dark:text-gray-400"
+                >
                   <div className="text-4xl mb-2">📚</div>
                   <p className="font-medium">Complete quizzes to see your strengths</p>
-                </div>
+                </motion.div>
               )}
             </div>
           </motion.div>
@@ -467,7 +484,7 @@ export const Progress = () => {
                 className="flex items-center justify-between p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-300 group"
               >
                 <div className="flex items-center space-x-4">
-                  <div className={`w-14 h-14 rounded-xl ${getScoreBgColor(quiz.score)} flex items-center justify-center text-xl font-bold ${getScoreColor(quiz.score)} group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`w-14 h-14 rounded-xl ${getScoreBgColor(quiz.score)} flex items-center justify-center text-xl font-bold ${getScoreColor(quiz.score)} group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
                     {quiz.score}%
                   </div>
                   
@@ -519,7 +536,7 @@ export const Progress = () => {
         className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white shadow-2xl"
       >
         <div className="flex items-start space-x-6">
-          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
+          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm shadow-lg">
             <span className="text-2xl">💡</span>
           </div>
           

@@ -19,7 +19,7 @@ export const ReviewModal = ({ isOpen, onClose, quizId, documentId }) => {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
       
-      const response = await fetch(`https://smartrevision.onrender.com/api/quizzes/allquiz/${documentId}`, {
+      const response = await fetch(`http://localhost:5000/api/quizzes/allquiz/${documentId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -55,16 +55,45 @@ export const ReviewModal = ({ isOpen, onClose, quizId, documentId }) => {
     return '';
   };
 
-  if (!isOpen) return null;
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.8,
+      transition: {
+        duration: 0.3
+      }
+    }
+  };
+
+  const questionItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: {
+        duration: 0.4
+      }
+    }
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
           >
             {/* Header */}
@@ -79,9 +108,11 @@ export const ReviewModal = ({ isOpen, onClose, quizId, documentId }) => {
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                <span className="text-2xl">×</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -92,24 +123,28 @@ export const ReviewModal = ({ isOpen, onClose, quizId, documentId }) => {
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Questions</h3>
                 <div className="space-y-2">
                   {quizData?.answers?.map((question, index) => (
-                    <button
+                    <motion.button
                       key={index}
+                      variants={questionItemVariants}
+                      initial="hidden"
+                      animate="visible"
+                      transition={{ delay: index * 0.1 }}
                       onClick={() => setSelectedQuestion(index)}
                       className={`w-full p-3 rounded-xl text-left transition-all duration-200 ${
                         selectedQuestion === index
-                          ? 'bg-indigo-500 text-white shadow-lg'
+                          ? 'bg-indigo-500 text-white shadow-lg transform scale-105'
                           : question.isCorrect
-                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'
+                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
+                          : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-900/50'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium">Q{index + 1}</span>
-                        <span>
+                        <span className="text-sm">
                           {question.isCorrect ? '✅' : '❌'}
                         </span>
                       </div>
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
@@ -118,23 +153,33 @@ export const ReviewModal = ({ isOpen, onClose, quizId, documentId }) => {
               <div className="lg:w-3/4 p-6 overflow-y-auto">
                 {loading ? (
                   <div className="flex items-center justify-center h-64">
-                    <div className="text-center">
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center"
+                    >
                       <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                       <p className="text-gray-600 dark:text-gray-400">Loading quiz details...</p>
-                    </div>
+                    </motion.div>
                   </div>
                 ) : quizData?.answers?.[selectedQuestion] ? (
-                  <div className="space-y-6">
+                  <motion.div 
+                    key={selectedQuestion}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="space-y-6"
+                  >
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                           Question {selectedQuestion + 1}
                         </h3>
-                        <p className="text-lg text-gray-700 dark:text-gray-300">
+                        <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
                           {quizData.answers[selectedQuestion].question}
                         </p>
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      <div className={`px-3 py-1 rounded-full text-sm font-semibold shadow-sm ${
                         quizData.answers[selectedQuestion].isCorrect
                           ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
                           : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
@@ -148,8 +193,11 @@ export const ReviewModal = ({ isOpen, onClose, quizId, documentId }) => {
                       <div className="space-y-3">
                         <h4 className="font-semibold text-gray-900 dark:text-white">Options:</h4>
                         {quizData.answers[selectedQuestion].options.map((option, optIndex) => (
-                          <div
+                          <motion.div
                             key={optIndex}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: optIndex * 0.1 }}
                             className={`p-4 border-2 rounded-xl transition-all duration-200 ${
                               getAnswerColor(
                                 quizData.answers[selectedQuestion].isCorrect,
@@ -162,7 +210,7 @@ export const ReviewModal = ({ isOpen, onClose, quizId, documentId }) => {
                           >
                             <div className="flex items-center justify-between">
                               <span className="text-gray-700 dark:text-gray-300">{option}</span>
-                              <span>
+                              <span className="text-lg">
                                 {getAnswerIcon(
                                   quizData.answers[selectedQuestion].isCorrect,
                                   quizData.answers[selectedQuestion].userAnswer,
@@ -171,44 +219,72 @@ export const ReviewModal = ({ isOpen, onClose, quizId, documentId }) => {
                                 )}
                               </span>
                             </div>
-                          </div>
+                          </motion.div>
                         ))}
                       </div>
                     )}
 
                     {/* User Answer */}
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
-                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Your Answer:</h4>
-                      <p className="text-blue-700 dark:text-blue-300">
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800"
+                    >
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+                        <span>👤</span>
+                        Your Answer:
+                      </h4>
+                      <p className="text-blue-700 dark:text-blue-300 font-medium">
                         {quizData.answers[selectedQuestion].userAnswer || 'No answer provided'}
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Correct Answer */}
-                    <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800">
-                      <h4 className="font-semibold text-emerald-900 dark:text-emerald-100 mb-2">Correct Answer:</h4>
-                      <p className="text-emerald-700 dark:text-emerald-300">
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800"
+                    >
+                      <h4 className="font-semibold text-emerald-900 dark:text-emerald-100 mb-2 flex items-center gap-2">
+                        <span>✅</span>
+                        Correct Answer:
+                      </h4>
+                      <p className="text-emerald-700 dark:text-emerald-300 font-medium">
                         {quizData.answers[selectedQuestion].correctAnswer}
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Explanation */}
                     {quizData.answers[selectedQuestion].explanation && (
-                      <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800">
-                        <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">Explanation:</h4>
-                        <p className="text-purple-700 dark:text-purple-300">
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800"
+                      >
+                        <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2 flex items-center gap-2">
+                          <span>💡</span>
+                          Explanation:
+                        </h4>
+                        <p className="text-purple-700 dark:text-purple-300 leading-relaxed">
                           {quizData.answers[selectedQuestion].explanation}
                         </p>
-                      </div>
+                      </motion.div>
                     )}
-                  </div>
+                  </motion.div>
                 ) : (
-                  <div className="text-center py-12">
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-12"
+                  >
                     <div className="text-6xl mb-4">📊</div>
                     <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                       No quiz data found
                     </p>
-                  </div>
+                  </motion.div>
                 )}
               </div>
             </div>

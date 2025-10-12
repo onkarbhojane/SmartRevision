@@ -43,7 +43,7 @@ export const ChatInterface = ({
 
     try {
       const response = await axios.get(
-        `https://smartrevision.onrender.com/api/chat/${documentId}/history`,
+        `http://localhost:5000/api/chat/${documentId}/history`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -147,7 +147,7 @@ export const ChatInterface = ({
 
     try {
       const response = await axios.get(
-        `https://smartrevision.onrender.com/api/chat/${documentId}/${currentPage}`,
+        `http://localhost:5000/api/chat/${documentId}/${currentPage}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -211,7 +211,7 @@ export const ChatInterface = ({
 
     try {
       const response = await axios.post(
-        `https://smartrevision.onrender.com/api/chat/${documentId}`,
+        `http://localhost:5000/api/chat/${documentId}`,
         { question },
         {
           headers: {
@@ -308,7 +308,7 @@ export const ChatInterface = ({
     if (window.confirm("Are you sure you want to clear this chat?")) {
       try {
         await axios.delete(
-          `https://smartrevision.onrender.com/api/chat/${documentId}/clear`,
+          `http://localhost:5000/api/chat/${documentId}/clear`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,

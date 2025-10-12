@@ -15,4 +15,6 @@ router.get('/getData', authMiddleware, getUserDocuments);
 router.delete('/:id', authMiddleware, deleteDocument);
 
 router.get('/:id',authMiddleware, getStudyMaterials);
+
+router.get('/:doumentId/page/:pageNumber/youtube-recommendations', authMiddleware, );
 export default router;

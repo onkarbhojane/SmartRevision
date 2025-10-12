@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Mock service for document operations
 const documentService = {
   async uploadDocument(formData, token) {
-    const response = await fetch("https://smartrevision.onrender.com/api/documents/upload", {
+    const response = await fetch("http://localhost:5000/api/documents/upload", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -24,7 +24,7 @@ const documentService = {
 
   async getUserDocuments(token) {
     const response = await fetch(
-      "https://smartrevision.onrender.com/api/documents/getData",
+      "http://localhost:5000/api/documents/getData",
       {
         method: "GET",
         headers: {
@@ -43,7 +43,7 @@ const documentService = {
 
   async deleteDocument(documentId, token) {
     const response = await fetch(
-      `https://smartrevision.onrender.com/api/documents/${documentId}`,
+      `http://localhost:5000/api/documents/${documentId}`,
       {
         method: "DELETE",
         headers: {
@@ -58,6 +58,315 @@ const documentService = {
     
     return await response.json();
   },
+
+  async getYouTubeRecommendations(documentId, pageNumber, token) {
+    const response = await fetch(
+      `http://localhost:5000/api/youtube/${documentId}/page/${pageNumber}/youtube-recommendations`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch YouTube recommendations: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  },
+};
+
+// YouTube Recommendations Modal Component
+const YouTubeRecommendationsModal = ({ 
+  isOpen, 
+  onClose, 
+  documentTitle, 
+  pageNumber,
+  pageContent,
+  recommendations = [],
+  loading = false,
+  message = null 
+}) => {
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getTimeAgo = (publishedAt) => {
+    const now = new Date();
+    const published = new Date(publishedAt);
+    const diffInDays = Math.floor((now - published) / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays === 0) return 'Today';
+    if (diffInDays === 1) return 'Yesterday';
+    if (diffInDays < 7) return `${diffInDays} days ago`;
+    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`;
+    return `${Math.floor(diffInDays / 30)} months ago`;
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-6xl max-h-[90vh] overflow-hidden border border-gray-200 dark:border-gray-700 shadow-2xl"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center">
+                  <span className="text-2xl">🎬</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Video Recommendations
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Page {pageNumber} • {documentTitle}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex flex-col lg:flex-row h-[calc(90vh-8rem)]">
+              {/* Page Content Sidebar */}
+              <div className="lg:w-1/3 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-6 overflow-y-auto">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <span>📄</span>
+                  Page Content Preview
+                </h3>
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed max-h-48 overflow-y-auto">
+                    {pageContent || "No content available for this page."}
+                  </div>
+                </div>
+                
+                {/* Learning Tips */}
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+                    <span>💡</span>
+                    Learning Tip
+                  </h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    {message || "Watch these videos to reinforce your understanding of the concepts from this page."}
+                  </p>
+                </div>
+              </div>
+
+              {/* YouTube Videos */}
+              <div className="lg:w-2/3 p-6 overflow-y-auto">
+                {loading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <p className="text-gray-600 dark:text-gray-400">Finding the best videos for you...</p>
+                    </div>
+                  </div>
+                ) : recommendations.length > 0 ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                        Recommended Videos ({recommendations.length})
+                      </h3>
+                      <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                        <span>🎯</span>
+                        <span>Personalized for this content</span>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-6">
+                      {recommendations.map((video, index) => (
+                        <motion.div
+                          key={video.videoId}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all group"
+                        >
+                          {/* Thumbnail */}
+                          <div className="relative flex-shrink-0">
+                            <div className="w-full sm:w-48 h-32 bg-gray-300 dark:bg-gray-600 rounded-lg shadow-sm group-hover:shadow-md transition-shadow flex items-center justify-center">
+                              <span className="text-4xl">🎬</span>
+                            </div>
+                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                              {formatDuration(video.duration)}
+                            </div>
+                            <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded font-semibold">
+                              YouTube
+                            </div>
+                          </div>
+
+                          {/* Video Info */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                              {video.title}
+                            </h4>
+                            
+                            <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                              <span className="flex items-center space-x-1">
+                                <span>👤</span>
+                                <span>{video.channelTitle}</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <span>👁️</span>
+                                <span>{video.viewCount.toLocaleString()} views</span>
+                              </span>
+                              <span>{getTimeAgo(video.publishedAt)}</span>
+                            </div>
+
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                              {video.description}
+                            </p>
+
+                            {/* Relevance Score */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                  <div 
+                                    className="bg-green-500 h-2 rounded-full transition-all duration-1000"
+                                    style={{ width: `${video.relevanceScore}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {video.relevanceScore}% relevant
+                                </span>
+                              </div>
+                              
+                              <a
+                                href={`https://www.youtube.com/watch?v=${video.videoId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors flex items-center space-x-2 group"
+                              >
+                                <span>▶️</span>
+                                <span>Watch</span>
+                              </a>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-3xl">🎬</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                      {message ? "No Educational Content" : "No Videos Found"}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                      {message || "We couldn't find any relevant YouTube videos for this page content. Try studying the material directly or check back later."}
+                    </p>
+                    {message && (
+                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                          This page appears to be a cover page, table of contents, or doesn't contain educational content suitable for video recommendations.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// Page Selection Modal Component
+const PageSelectionModal = ({ 
+  isOpen, 
+  onClose, 
+  document: doc, 
+  onPageSelect 
+}) => {
+  const [selectedPage, setSelectedPage] = useState(null);
+
+  const handlePageSelect = (pageNumber) => {
+    setSelectedPage(pageNumber);
+    onPageSelect(pageNumber);
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-2xl border border-gray-200 dark:border-gray-700 shadow-2xl"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Select a Page
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  Choose a page to get video recommendations
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Page Grid */}
+            <div className="p-6">
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 max-h-96 overflow-y-auto">
+                {Array.from({ length: doc.pages?.length || 0 }, (_, i) => i + 1).map((pageNum) => (
+                  <motion.button
+                    key={pageNum}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handlePageSelect(pageNum)}
+                    className="aspect-square bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all flex items-center justify-center group"
+                  >
+                    <span className="group-hover:scale-110 transition-transform">
+                      {pageNum}
+                    </span>
+                  </motion.button>
+                ))}
+              </div>
+
+              {(!doc.pages || doc.pages.length === 0) && (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <div className="text-4xl mb-2">📄</div>
+                  <p>No pages available for this document</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
 };
 
 export const Documents = () => {
@@ -69,6 +378,15 @@ export const Documents = () => {
   const { user, getTokens } = useAuth();
   const { isDark } = useTheme();
 
+  // YouTube recommendations state
+  const [showPageSelection, setShowPageSelection] = useState(false);
+  const [showYouTubeModal, setShowYouTubeModal] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [selectedPage, setSelectedPage] = useState(null);
+  const [youTubeRecommendations, setYouTubeRecommendations] = useState([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [recommendationMessage, setRecommendationMessage] = useState(null);
+
   useEffect(() => {
     loadUserDocuments();
   }, []);
@@ -78,18 +396,15 @@ export const Documents = () => {
       setError(null);
       const { accessToken } = getTokens();
       const data = await documentService.getUserDocuments(accessToken);
-      console.log("API Response:", data.documents);
-      // Handle different response structures
+      
       let documentsData = [];
       if (data.documents) {
         documentsData = data.documents.study_materials;
       }
       
-      // Ensure we have an array and safely access pages
       const processedDocuments = documentsData.map(doc => ({
         ...doc,
         pages: Array.isArray(doc.pages) ? doc.pages : [],
-        // Ensure all required fields have safe defaults
         title: doc.title || "Untitled Document",
         subject: doc.subject || "General",
         uploadedAt: doc.uploadedAt || doc.uploadDate || new Date(),
@@ -131,12 +446,10 @@ export const Documents = () => {
         );
 
         if (result.success) {
-          // Handle different response structures
           const newDocument = result.document || result.study_material;
           if (newDocument) {
             setDocuments((prev) => [{
               ...newDocument,
-              // Ensure proper formatting
               pages: Array.isArray(newDocument.pages) ? newDocument.pages : [],
               title: newDocument.title || file.name.replace(".pdf", ""),
               subject: newDocument.subject || "General",
@@ -176,7 +489,67 @@ export const Documents = () => {
     }
   };
 
-  // Safe date formatting
+  // YouTube recommendations handlers
+  const handleShowYouTubeRecommendations = (document) => {
+    setSelectedDocument(document);
+    setShowPageSelection(true);
+    // Reset previous state
+    setYouTubeRecommendations([]);
+    setRecommendationMessage(null);
+  };
+
+  const handlePageSelect = async (pageNumber) => {
+    setSelectedPage(pageNumber);
+    setShowPageSelection(false);
+    setLoadingRecommendations(true);
+    setShowYouTubeModal(true);
+    setYouTubeRecommendations([]);
+    setRecommendationMessage(null);
+
+    try {
+      const { accessToken } = getTokens();
+      const data = await documentService.getYouTubeRecommendations(
+        selectedDocument._id,
+        pageNumber,
+        accessToken
+      );
+      
+      console.log("YouTube API Response:", data);
+      
+      if (data.success) {
+        if (data.recommendations && data.recommendations.length > 0) {
+          setYouTubeRecommendations(data.recommendations);
+          setRecommendationMessage(null);
+        } else {
+          // No recommendations - check if there's a message from backend
+          setYouTubeRecommendations([]);
+          setRecommendationMessage(
+            data.message || "No video recommendations available for this page content."
+          );
+        }
+      } else {
+        throw new Error(data.message || "Failed to get recommendations");
+      }
+    } catch (error) {
+      console.error("Error fetching YouTube recommendations:", error);
+      setYouTubeRecommendations([]);
+      setRecommendationMessage(
+        error.message || "Failed to load video recommendations. Please try again later."
+      );
+    } finally {
+      setLoadingRecommendations(false);
+    }
+  };
+
+  const getPageContent = (pageNumber) => {
+    if (!selectedDocument?.pages || !Array.isArray(selectedDocument.pages)) {
+      return "No content available";
+    }
+    
+    const page = selectedDocument.pages[pageNumber - 1];
+    return page?.text || page?.summary || "No content available for this page.";
+  };
+
   const formatDate = (date) => {
     try {
       if (!date) return "N/A";
@@ -186,13 +559,11 @@ export const Documents = () => {
     }
   };
 
-  // Safe page count calculation
   const getPageCount = (document) => {
     if (!document.pages || !Array.isArray(document.pages)) return "N/A";
     return document.pages.length;
   };
 
-  // Generate beautiful document thumbnails with random academic-themed illustrations
   const generateDocumentThumbnail = (document, index) => {
     const subjectIcons = {
       Physics: ["⚛️", "🔭", "⚡", "🌌"],
@@ -222,7 +593,6 @@ export const Documents = () => {
       <div
         className={`w-full h-40 bg-gradient-to-br ${colorScheme} rounded-xl flex items-center justify-center text-white relative overflow-hidden group`}
       >
-        {/* Animated background pattern */}
         <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
           <div className="absolute -top-4 -right-4 text-6xl rotate-12">
             {pattern}
@@ -232,7 +602,6 @@ export const Documents = () => {
           </div>
         </div>
 
-        {/* Main content */}
         <div className="text-center relative z-10 transform group-hover:scale-110 transition-transform">
           <div className="text-4xl mb-2">{icons[0]}</div>
           <div className="text-xs font-semibold bg-white/20 px-3 py-1 rounded-full">
@@ -240,7 +609,6 @@ export const Documents = () => {
           </div>
         </div>
 
-        {/* Shine effect on hover */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
       </div>
     );
@@ -469,7 +837,7 @@ export const Documents = () => {
       {documents.length > 0 ? (
         <motion.div
           layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-120"
         >
           {documents.map((document, index) => (
             <motion.div
@@ -484,7 +852,7 @@ export const Documents = () => {
                 stiffness: 100,
               }}
               whileHover={{ y: -8, scale: 1.02 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 group overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-2xl w-110 border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 group overflow-hidden"
             >
               {/* Enhanced Thumbnail */}
               {generateDocumentThumbnail(document, index)}
@@ -559,6 +927,18 @@ export const Documents = () => {
                     </span>
                     <span>Quiz</span>
                   </Link>
+
+                  {/* YouTube Recommendations Button */}
+                  <button
+                    onClick={() => handleShowYouTubeRecommendations(document)}
+                    className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all text-center flex items-center justify-center space-x-2 group"
+                    title="Get video recommendations"
+                  >
+                    <span className="group-hover:scale-110 transition-transform">
+                      🎬
+                    </span>
+                    <span>Videos</span>
+                  </button>
 
                   <button
                     onClick={() => handleDeleteDocument(document._id)}
@@ -684,6 +1064,25 @@ export const Documents = () => {
           </motion.div>
         </motion.div>
       )}
+
+      {/* YouTube Modals */}
+      <PageSelectionModal
+        isOpen={showPageSelection}
+        onClose={() => setShowPageSelection(false)}
+        document={selectedDocument}
+        onPageSelect={handlePageSelect}
+      />
+
+      <YouTubeRecommendationsModal
+        isOpen={showYouTubeModal}
+        onClose={() => setShowYouTubeModal(false)}
+        documentTitle={selectedDocument?.title}
+        pageNumber={selectedPage}
+        pageContent={getPageContent(selectedPage)}
+        recommendations={youTubeRecommendations}
+        loading={loadingRecommendations}
+        message={recommendationMessage}
+      />
     </div>
   );
 };

@@ -1,3 +1,5 @@
+/* CleanPDFViewer.css */
+
 .clean-pdf-container {
   max-width: 100%;
   margin: 0 auto;
@@ -7,20 +9,54 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Controls Layout */
 .pdf-controls {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  padding: 10px;
+  padding: 12px 20px;
   background: white;
   border-radius: 6px;
+  border-bottom: 1px solid #e9ecef;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.page-button, .download-button, .copy-button {
+.controls-left,
+.controls-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.controls-center {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Button Styles */
+.documents-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.documents-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.page-button {
   padding: 8px 16px;
   border: 1px solid #ddd;
   background: white;
@@ -30,9 +66,7 @@
   transition: all 0.2s ease;
 }
 
-.page-button:hover:not(:disabled), 
-.download-button:hover, 
-.copy-button:hover {
+.page-button:hover:not(:disabled) {
   background: #007bff;
   color: white;
   border-color: #007bff;
@@ -50,18 +84,7 @@
   text-align: center;
 }
 
-.selection-controls {
-  display: flex;
-  gap: 10px;
-  margin-left: 10px;
-}
-
-.copy-button {
-  background: #28a745;
-  color: white;
-  border-color: #28a745;
-}
-
+/* Selected Text Preview */
 .selected-text-preview {
   background: #e7f3ff;
   border: 1px solid #b3d9ff;
@@ -105,6 +128,7 @@
   line-height: 1.4;
 }
 
+/* PDF Canvas Container */
 .pdf-canvas-container {
   display: flex;
   justify-content: center;
@@ -126,7 +150,8 @@
   cursor: text;
 }
 
-.loading-container, .error-container {
+/* Loading State */
+.loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -150,7 +175,27 @@
   100% { transform: rotate(360deg); }
 }
 
-.retry-button, .download-button, .direct-link {
+/* Error State */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+}
+
+.error-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.retry-button,
+.download-button,
+.direct-link {
   padding: 8px 16px;
   border: 1px solid #007bff;
   background: #007bff;
@@ -159,25 +204,35 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  transition: all 0.2s ease;
 }
 
 .direct-link {
   display: inline-block;
 }
 
-.retry-button:hover, .download-button:hover, .direct-link:hover {
+.retry-button:hover,
+.download-button:hover,
+.direct-link:hover {
   background: #0056b3;
   border-color: #0056b3;
 }
 
-.error-actions {
-  display: flex;
-  gap: 10px;
-  flex-direction: column;
-  align-items: center;
+/* Selection Feedback */
+#pdf-selection-feedback {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  z-index: 10000;
+  font-size: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  animation: slideIn 0.3s ease-out;
 }
 
-/* Selection feedback animation */
 @keyframes slideIn {
   from {
     transform: translateX(100%);
@@ -189,6 +244,46 @@
   }
 }
 
-#pdf-selection-feedback {
-  animation: slideIn 0.3s ease-out;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pdf-controls {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .controls-left,
+  .controls-center {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .documents-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .clean-pdf-container {
+    padding: 10px;
+  }
+  
+  .pdf-canvas-container {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-info {
+    min-width: auto;
+    font-size: 14px;
+  }
+  
+  .page-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .documents-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
 }

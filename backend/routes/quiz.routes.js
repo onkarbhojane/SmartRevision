@@ -21,4 +21,6 @@ router.get("/latest/:documentId", authMiddleware, getLatestQuiz);
 router.post("/save/:documentId/:quizId", authMiddleware, saveQuizAttempt);
 router.get("/allquiz/:documentId", authMiddleware, getAllQuizzes);
 
+
+
 export default router;
