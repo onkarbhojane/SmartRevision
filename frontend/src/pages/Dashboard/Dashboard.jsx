@@ -18,7 +18,7 @@ export const Dashboard = () => {
         const token = localStorage.getItem("accessToken");
 
         const response = await axios.get(
-          "http://localhost:5000/api/quizzes/dashboard",
+          "https://smartrevision.onrender.com/api/quizzes/dashboard",
           {
             headers: {
               "Content-Type": "application/json",

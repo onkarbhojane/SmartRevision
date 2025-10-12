@@ -21,7 +21,7 @@ export const QuizGenerator = ({ documentId, onQuizGenerated, documentTitle, onVi
       try {
         const token = localStorage.getItem('accessToken');
         const response = await axios.get(
-          `http://localhost:5000/api/quizzes/attempts/${documentId}`,
+          `https://smartrevision.onrender.com/api/quizzes/attempts/${documentId}`,
           { 
             headers: { 
               Authorization: `Bearer ${token}`,
@@ -48,7 +48,7 @@ export const QuizGenerator = ({ documentId, onQuizGenerated, documentTitle, onVi
     try {
       const token = localStorage.getItem('accessToken');
       const response = await axios.post(
-        `http://localhost:5000/api/quizzes/generate/${documentId}`,
+        `https://smartrevision.onrender.com/api/quizzes/generate/${documentId}`,
         {
           quizType: selectedType,
           numQuestions: questionCount

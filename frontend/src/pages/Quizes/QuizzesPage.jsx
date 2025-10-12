@@ -15,7 +15,7 @@ export const QuizzesPage = () => {
         const token = localStorage.getItem("accessToken");
 
         const response = await axios.get(
-          `http://localhost:5000/api/quizzes/allquiz/${documentId}`,
+          `https://smartrevision.onrender.com/api/quizzes/allquiz/${documentId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
